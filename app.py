@@ -44,7 +44,7 @@ def translate_to_english(origin_text: str) -> str | None:
         return None
 
 
-@app.route('/slack/events', methods=['POST'])
+@app.route('/events', methods=['POST'])
 def slack_events():
     json_data = request.json
 
