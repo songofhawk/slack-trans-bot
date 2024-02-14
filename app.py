@@ -12,6 +12,7 @@ from functools import lru_cache
 app = Flask(__name__)
 
 SLACK_BOT_TOKEN = os.environ.get('SLACK_TRANS_BOT_TOKEN')
+SLACK_DEBUG_TOKEN = os.environ.get('SLACK_DEBUG_TOKEN')
 TRANSLATE_API_KEY = os.environ.get('OPENAI_TOKEN')
 ASCII_CHARS = set(string.printable)
 
@@ -90,9 +91,9 @@ def get_user_name(user_id: str) -> str:
         return user_id
 
 
-def send_message_to_slack(message, channel: str):
+def send_message_to_slack(message, channel: str, token: str):
     url = 'https://slack.com/api/chat.postMessage'
-    headers = {'Authorization': f'Bearer {SLACK_BOT_TOKEN}'}
+    headers = {'Authorization': f'Bearer {token}'}
     data = {
         'channel': channel,
         'text': message
@@ -141,7 +142,13 @@ def slack_events():
         # 发送翻译后的文本到 Slack
         send_message_to_slack(
             user_name + ' said: ' + translated_text,
-            json_data['event']['channel']
+            json_data['event']['channel'],
+            token=SLACK_BOT_TOKEN
+        )
+        send_message_to_slack(
+            f"In【{json_data['event']['channel']}】，{user_name} said: {translated_text}",
+            'slack-bot',
+            token=SLACK_DEBUG_TOKEN
         )
 
     return '', 200
