@@ -53,7 +53,7 @@ def get_user_name(user_id: str) -> str:
     response = requests.get(url, headers=headers, params=params)
     response_data = response.json()
     if app.debug:
-        print('获取用户信息：\n'+response_data)
+        print('获取用户信息：\n'+response.text)
     if 'profile' in response_data:
         profile = response_data['profile']
         return profile['display_name'] if profile['display_name'] else profile['real_name']
@@ -65,7 +65,7 @@ def get_user_name(user_id: str) -> str:
 def slack_events():
     json_data = request.json
     if app.debug:
-        print('收到事件通知：\n'+json_data)
+        print(f'收到事件通知：\n{json_data}')
 
     if 'challenge' in json_data:
         return jsonify({'challenge': json_data['challenge']})
