@@ -13,13 +13,13 @@ app = Flask(__name__)
 
 SLACK_BOT_TOKEN = os.environ.get('SLACK_TRANS_BOT_TOKEN')
 TRANSLATE_API_KEY = os.environ.get('OPENAI_TOKEN')
+ASCII_CHARS = set(string.printable)
 
 
 def is_english(text):
     # 简单的检查方法：如果大部分字符都是 ASCII，就假定文本是英文
-    ascii_chars = set(string.printable)
-    non_ascii_chars = [char for char in text if char not in ascii_chars]
-    return len(non_ascii_chars) / len(text) < 0.1  # 可以调整阈值
+    non_ascii_chars_in_text = [char for char in text if char not in ASCII_CHARS]
+    return len(non_ascii_chars_in_text) / len(text) < 0.1  # 可以调整阈值
 
 
 def translate_to_english(origin_text: str) -> str | None:
@@ -107,3 +107,4 @@ if __name__ == '__main__':
     # app.debug = True
     # print(get_user_name('U0645QRJ31T'))
     # print(get_user_name('U0645QRJ31T'))
+    # print(is_english('ETH/USDT市场的现货价格已超过网格策略的价格区间，你可手动终止策略或修改止盈止损价格。'))
