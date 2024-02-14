@@ -48,7 +48,7 @@ def translate_to_english(origin_text: str) -> str | None:
         return translated_text
     except Exception as e:
         print(f"An error occurred: {e}")
-        return None
+        return f"An error occurred: {e}"
 
 
 @lru_cache
@@ -69,6 +69,18 @@ def get_user_name(user_id: str) -> str:
         return user_id
 
 
+def send_message_to_slack(message, channel: str):
+    url = 'https://slack.com/api/chat.postMessage'
+    headers = {'Authorization': f'Bearer {SLACK_BOT_TOKEN}'}
+    data = {
+        'channel': channel,
+        'text': message
+    }
+    response = requests.post(url, headers=headers, data=data)
+    if app.debug:
+        print('发送消息到 slack：\n' + response.text)
+
+
 @app.route('/events', methods=['POST'])
 def slack_events():
     json_data = request.json
@@ -76,6 +88,8 @@ def slack_events():
         print(f'收到事件通知：\n{json_data}')
 
     if 'challenge' in json_data:
+        if app.debug:
+            print('收到授权验证消息，确认')
         return jsonify({'challenge': json_data['challenge']})
 
     if 'bot_id' in json_data['event'] and json_data['event']['bot_id']:
@@ -92,17 +106,16 @@ def slack_events():
             if app.debug:
                 print('文本是英文，无需翻译')
             return 'No translation', 200
+        if translated_text.startswith('An error occurred:'):
+            if app.debug:
+                print('翻译失败')
+            return 'Translation failed', 200
 
         # 发送翻译后的文本到 Slack
-        url = 'https://slack.com/api/chat.postMessage'
-        headers = {'Authorization': f'Bearer {SLACK_BOT_TOKEN}'}
-        data = {
-            'channel': json_data['event']['channel'],
-            'text': user_name + ' said: ' + translated_text
-        }
-        response = requests.post(url, headers=headers, data=data)
-        if app.debug:
-            print('发送翻译后的消息：\n' + response.text)
+        send_message_to_slack(
+            user_name + ' said: ' + translated_text,
+            json_data['event']['channel']
+        )
 
     return '', 200
 
