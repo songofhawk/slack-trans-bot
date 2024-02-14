@@ -16,6 +16,27 @@ TRANSLATE_API_KEY = os.environ.get('OPENAI_TOKEN')
 ASCII_CHARS = set(string.printable)
 
 
+class MessageCache:
+    MAX_MESSAGE_COUNT = 100
+
+    def __init__(self):
+        self.message_id_set = set()
+        self.message_id_list = []
+
+    def add(self, message_id):
+        if len(self.message_id_list) > self.MAX_MESSAGE_COUNT:
+            self.message_id_list = self.message_id_list[self.MAX_MESSAGE_COUNT//2:]
+            self.message_id_set = set(self.message_id_list)
+        self.message_id_list.append(message_id)
+        self.message_id_set.add(message_id)
+
+    def __contains__(self, message_id):
+        return message_id in self.message_id_set
+
+
+message_cache = MessageCache()
+
+
 def is_english(text):
     # 简单的检查方法：如果大部分字符都是 ASCII，就假定文本是英文
     non_ascii_chars_in_text = [char for char in text if char not in ASCII_CHARS]
@@ -98,6 +119,12 @@ def slack_events():
         return 'Not process', 200
 
     if json_data['event']['type'] == 'message' and 'subtype' not in json_data['event']:
+        message_id = json_data['event']['client_msg_id']
+        if message_id in message_cache:
+            return 'Has processed', 200
+        else:
+            message_cache.add(message_id)
+
         user_name = get_user_name(json_data['event']['user'])
 
         text = json_data['event']['text']
