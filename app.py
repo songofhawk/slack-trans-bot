@@ -44,6 +44,18 @@ def translate_to_english(origin_text: str) -> str | None:
         return None
 
 
+def get_user_name(user_id: str) -> str:
+    url = 'https://slack.com/api/users.profile.get'
+    headers = {'Authorization': f'Bearer {SLACK_BOT_TOKEN}'}
+    params = {
+        'user': user_id,
+    }
+    response = requests.get(url, headers=headers, params=params)
+    if app.debug:
+        print(response)
+    return response['display_name']
+
+
 @app.route('/events', methods=['POST'])
 def slack_events():
     json_data = request.json
@@ -59,12 +71,13 @@ def slack_events():
         if translated_text is None:
             return 'No translation', 200
 
+        user_name = get_user_name(json_data['event']['user'])
         # 发送翻译后的文本到 Slack
         url = 'https://slack.com/api/chat.postMessage'
         headers = {'Authorization': f'Bearer {SLACK_BOT_TOKEN}'}
         data = {
             'channel': json_data['event']['channel'],
-            'text': json_data['event']['user'] + ' said: ' + translated_text
+            'text': user_name + ' said: ' + translated_text
         }
         requests.post(url, headers=headers, data=data)
 
