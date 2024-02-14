@@ -53,7 +53,7 @@ def get_user_name(user_id: str) -> str:
     response = requests.get(url, headers=headers, params=params)
     response_data = response.json()
     if app.debug:
-        print(response_data)
+        print('获取用户信息：\n'+response_data)
     if 'profile' in response_data:
         profile = response_data['profile']
         return profile['display_name'] if profile['display_name'] else profile['real_name']
@@ -65,18 +65,21 @@ def get_user_name(user_id: str) -> str:
 def slack_events():
     json_data = request.json
     if app.debug:
-        print(json_data)
+        print('收到事件通知：\n'+json_data)
 
     if 'challenge' in json_data:
         return jsonify({'challenge': json_data['challenge']})
 
     if json_data['event']['type'] == 'message' and 'subtype' not in json_data['event']:
+        user_name = get_user_name(json_data['event']['user'])
+
         text = json_data['event']['text']
         translated_text = translate_to_english(text)
         if translated_text is None:
+            if app.debug:
+                print('文本是英文，无需翻译')
             return 'No translation', 200
 
-        user_name = get_user_name(json_data['event']['user'])
         # 发送翻译后的文本到 Slack
         url = 'https://slack.com/api/chat.postMessage'
         headers = {'Authorization': f'Bearer {SLACK_BOT_TOKEN}'}
@@ -84,7 +87,9 @@ def slack_events():
             'channel': json_data['event']['channel'],
             'text': user_name + ' said: ' + translated_text
         }
-        requests.post(url, headers=headers, data=data)
+        response = requests.post(url, headers=headers, data=data)
+        if app.debug:
+            print('发送翻译后的消息：\n' + response.text)
 
     return '', 200
 
