@@ -6,6 +6,8 @@ from flask import Flask, request, jsonify
 import requests
 import os
 from openai import OpenAI
+from functools import lru_cache
+
 
 app = Flask(__name__)
 
@@ -44,6 +46,7 @@ def translate_to_english(origin_text: str) -> str | None:
         return None
 
 
+@lru_cache
 def get_user_name(user_id: str) -> str:
     url = 'https://slack.com/api/users.profile.get'
     headers = {'Authorization': f'Bearer {SLACK_BOT_TOKEN}'}
@@ -69,6 +72,11 @@ def slack_events():
 
     if 'challenge' in json_data:
         return jsonify({'challenge': json_data['challenge']})
+
+    if 'bot_id' in json_data['event'] and json_data['event']['bot_id']:
+        if app.debug:
+            print('收到机器人消息，不处理')
+        return 'Not process', 200
 
     if json_data['event']['type'] == 'message' and 'subtype' not in json_data['event']:
         user_name = get_user_name(json_data['event']['user'])
@@ -96,4 +104,6 @@ def slack_events():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
-    # get_user_name('U0645QRJ31T')
+    # app.debug = True
+    # print(get_user_name('U0645QRJ31T'))
+    # print(get_user_name('U0645QRJ31T'))
