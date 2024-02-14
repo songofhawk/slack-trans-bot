@@ -7,6 +7,7 @@ import requests
 import os
 from openai import OpenAI
 from functools import lru_cache
+import logging
 
 
 app = Flask(__name__)
@@ -42,10 +43,10 @@ def is_english(text):
     # 简单的检查方法：如果大部分字符都是 ASCII，就假定文本是英文
     non_ascii_chars_in_text = [char for char in text if char not in ASCII_CHARS]
     if app.debug:
-        print(f'非 ASCII 字符数量：{len(non_ascii_chars_in_text)}\n'
-              f'总数量：{len(text)}\n '
-              f'比例：{len(non_ascii_chars_in_text) / len(text)}\n'
-              f'文本：{text}')
+        logging.debug(f'非 ASCII 字符数量：{len(non_ascii_chars_in_text)}\n'
+                      f'总数量：{len(text)}\n '
+                      f'比例：{len(non_ascii_chars_in_text) / len(text)}\n'
+                      f'文本：{text}')
     return len(non_ascii_chars_in_text) / len(text) < 0.1  # 可以调整阈值
 
 
@@ -69,7 +70,7 @@ def translate_to_english(origin_text: str) -> str | None:
         translated_text = response.choices[0].message.content.strip()
         return translated_text
     except Exception as e:
-        print(f"An error occurred: {e}")
+        logging.debug(f"An error occurred: {e}")
         return f"An error occurred: {e}"
 
 
@@ -83,7 +84,7 @@ def get_user_name(user_id: str) -> str:
     response = requests.get(url, headers=headers, params=params)
     response_data = response.json()
     if app.debug:
-        print('获取用户信息：\n'+response.text)
+        logging.debug('获取用户信息：\n'+response.text)
     if 'profile' in response_data:
         profile = response_data['profile']
         return profile['display_name'] if profile['display_name'] else profile['real_name']
@@ -100,23 +101,23 @@ def send_message_to_slack(message, channel: str, token: str):
     }
     response = requests.post(url, headers=headers, data=data)
     if app.debug:
-        print('发送消息到 slack：\n' + response.text)
+        logging.debug('发送消息到 slack：\n' + response.text)
 
 
 @app.route('/events', methods=['POST'])
 def slack_events():
     json_data = request.json
     if app.debug:
-        print(f'收到事件通知：\n{json_data}')
+        logging.debug(f'收到事件通知：\n{json_data}')
 
     if 'challenge' in json_data:
         if app.debug:
-            print('收到授权验证消息，确认')
+            logging.debug('收到授权验证消息，确认')
         return jsonify({'challenge': json_data['challenge']})
 
     if 'bot_id' in json_data['event'] and json_data['event']['bot_id']:
         if app.debug:
-            print('收到机器人消息，不处理')
+            logging.debug('收到机器人消息，不处理')
         return 'Not process', 200
 
     if json_data['event']['type'] == 'message' and 'subtype' not in json_data['event']:
@@ -132,11 +133,11 @@ def slack_events():
         translated_text = translate_to_english(text)
         if translated_text is None:
             if app.debug:
-                print('文本是英文，无需翻译')
+                logging.debug('文本是英文，无需翻译')
             return 'No translation', 200
         if translated_text.startswith('An error occurred:'):
             if app.debug:
-                print('翻译失败')
+                logging.debug('翻译失败')
             return 'Translation failed', 200
 
         # 发送翻译后的文本到 Slack
@@ -157,6 +158,6 @@ def slack_events():
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
     # app.debug = True
-    # print(get_user_name('U0645QRJ31T'))
-    # print(get_user_name('U0645QRJ31T'))
-    # print(is_english('ETH/USDT市场的现货价格已超过网格策略的价格区间，你可手动终止策略或修改止盈止损价格。'))
+    # logging.debug(get_user_name('U0645QRJ31T'))
+    # logging.debug(get_user_name('U0645QRJ31T'))
+    # logging.debug(is_english('ETH/USDT市场的现货价格已超过网格策略的价格区间，你可手动终止策略或修改止盈止损价格。'))
