@@ -51,9 +51,14 @@ def get_user_name(user_id: str) -> str:
         'user': user_id,
     }
     response = requests.get(url, headers=headers, params=params)
+    response_data = response.json()
     if app.debug:
-        print(response.json())
-    return response.json()['display_name']
+        print(response_data)
+    if 'profile' in response_data:
+        profile = response_data['profile']
+        return profile['display_name'] if profile['display_name'] else profile['real_name']
+    else:
+        return user_id
 
 
 @app.route('/events', methods=['POST'])
@@ -86,3 +91,4 @@ def slack_events():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
+    # get_user_name('U0645QRJ31T')
