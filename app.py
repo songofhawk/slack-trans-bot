@@ -47,6 +47,8 @@ def translate_to_english(origin_text: str) -> str | None:
 @app.route('/events', methods=['POST'])
 def slack_events():
     json_data = request.json
+    if app.debug:
+        print(json_data)
 
     if 'challenge' in json_data:
         return jsonify({'challenge': json_data['challenge']})
@@ -62,7 +64,7 @@ def slack_events():
         headers = {'Authorization': f'Bearer {SLACK_BOT_TOKEN}'}
         data = {
             'channel': json_data['event']['channel'],
-            'text': json_data['event']['user'] + 'said: ' + translated_text
+            'text': json_data['event']['user'] + ' said: ' + translated_text
         }
         requests.post(url, headers=headers, data=data)
 
