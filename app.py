@@ -52,8 +52,8 @@ def get_user_name(user_id: str) -> str:
     }
     response = requests.get(url, headers=headers, params=params)
     if app.debug:
-        print(response)
-    return response['display_name']
+        print(response.json())
+    return response.json()['display_name']
 
 
 @app.route('/events', methods=['POST'])
