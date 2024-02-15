@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import string
+import sys
 
 from flask import Flask, request, jsonify
 import requests
@@ -10,7 +11,7 @@ from functools import lru_cache
 import logging
 
 logger = logging.getLogger()
-logger.addHandler(logging.StreamHandler())
+logger.addHandler(logging.StreamHandler(stream=sys.stdout))
 
 
 app = Flask(__name__)
