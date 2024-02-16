@@ -13,7 +13,6 @@ import logging
 logger = logging.getLogger()
 logger.addHandler(logging.StreamHandler(stream=sys.stdout))
 
-
 app = Flask(__name__)
 
 SLACK_BOT_TOKEN = os.environ.get('SLACK_TRANS_BOT_TOKEN')
@@ -31,7 +30,7 @@ class MessageCache:
 
     def add(self, message_id):
         if len(self.message_id_list) > self.MAX_MESSAGE_COUNT:
-            self.message_id_list = self.message_id_list[self.MAX_MESSAGE_COUNT//2:]
+            self.message_id_list = self.message_id_list[self.MAX_MESSAGE_COUNT // 2:]
             self.message_id_set = set(self.message_id_list)
         self.message_id_list.append(message_id)
         self.message_id_set.add(message_id)
@@ -48,9 +47,9 @@ def is_english(text):
     non_ascii_chars_in_text = [char for char in text if char not in ASCII_CHARS]
     if app.debug:
         logger.warning(f'非 ASCII 字符数量：{len(non_ascii_chars_in_text)}\n'
-                      f'总数量：{len(text)}\n '
-                      f'比例：{len(non_ascii_chars_in_text) / len(text)}\n'
-                      f'文本：{text}')
+                       f'总数量：{len(text)}\n '
+                       f'比例：{len(non_ascii_chars_in_text) / len(text)}\n'
+                       f'文本：{text}')
     return len(non_ascii_chars_in_text) / len(text) < 0.1  # 可以调整阈值
 
 
@@ -67,7 +66,8 @@ def translate_to_english(origin_text: str) -> str | None:
         )
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",  # 使用 GPT-3.5 的最新模型
-            messages=[{"role": "user", "content": f"Translate the following text to English:\n\n{origin_text}\n\n"}],  # 设置翻译提示
+            messages=[{"role": "user", "content": f"Translate the following text to English:\n\n{origin_text}\n\n"}],
+            # 设置翻译提示
             max_tokens=2000,  # 根据需要调整最大令牌数
             temperature=0,
         )
@@ -88,7 +88,7 @@ def get_user_name(user_id: str) -> str:
     response = requests.get(url, headers=headers, params=params)
     response_data = response.json()
     if app.debug:
-        logger.warning('获取用户信息：\n'+response.text)
+        logger.warning('获取用户信息：\n' + response.text)
     if 'profile' in response_data:
         profile = response_data['profile']
         return profile['display_name'] if profile['display_name'] else profile['real_name']
@@ -147,13 +147,16 @@ def slack_events():
             return 'Translation failed', 200
 
         # 发送翻译后的文本到 Slack
-        if app.debug:
-            logger.warning(f'准备发送到 正式 Slack')
-        send_message_to_slack(
-            user_name + ' said: ' + translated_text,
-            json_data['event']['channel'],
-            token=SLACK_BOT_TOKEN
-        )
+        if json_data['api_app_id'] == 'A06JKLQNMK8':
+            # 来自正式 channel 的消息，才会往正式 channel 转发
+            if app.debug:
+                logger.warning(f'准备发送到 正式 Slack')
+            send_message_to_slack(
+                user_name + ' said: ' + translated_text,
+                json_data['event']['channel'],
+                token=SLACK_BOT_TOKEN
+            )
+
         if app.debug:
             logger.warning(f'准备发送到 调试 Slack')
         send_message_to_slack(
