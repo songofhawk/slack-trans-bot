@@ -150,7 +150,7 @@ def slack_events():
         if json_data['api_app_id'] == 'A06JKLQNMK8':
             # 来自正式 channel 的消息，才会往正式 channel 转发
             if app.debug:
-                logger.warning(f'准备发送到 正式 Slack')
+                logger.warning(f'准备发送到 正式 Slack, token: {SLACK_BOT_TOKEN}, channel: {json_data["event"]["channel"]}')
             send_message_to_slack(
                 user_name + ' said: ' + translated_text,
                 json_data['event']['channel'],
@@ -158,7 +158,7 @@ def slack_events():
             )
 
         if app.debug:
-            logger.warning(f'准备发送到 调试 Slack')
+            logger.warning(f'准备发送到 调试 Slack, token: {SLACK_DEBUG_TOKEN}, channel: slack-bot')
         send_message_to_slack(
             f"In【{json_data['event']['channel']}】，{user_name} said: {translated_text}",
             'slack-bot',
