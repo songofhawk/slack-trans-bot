@@ -20,11 +20,6 @@ SLACK_DEBUG_TOKEN = os.environ.get('SLACK_DEBUG_TOKEN')
 TRANSLATE_API_KEY = os.environ.get('OPENAI_TOKEN')
 ASCII_CHARS = set(string.printable)
 
-if app.debug:
-    logger.warning(f'SLACK_BOT_TOKEN: {SLACK_BOT_TOKEN}')
-    logger.warning(f'SLACK_DEBUG_TOKEN: {SLACK_DEBUG_TOKEN}')
-    logger.warning(f'OPENAI_TOKEN: {TRANSLATE_API_KEY}')
-
 
 class MessageCache:
     MAX_MESSAGE_COUNT = 100
@@ -175,6 +170,11 @@ def slack_events():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
+    if app.debug:
+        logger.warning(f'SLACK_BOT_TOKEN: {SLACK_BOT_TOKEN}')
+        logger.warning(f'SLACK_DEBUG_TOKEN: {SLACK_DEBUG_TOKEN}')
+        logger.warning(f'OPENAI_TOKEN: {TRANSLATE_API_KEY}')
+
     # app.debug = True
     # logger.warning(get_user_name('U0645QRJ31T'))
     # logger.warning(get_user_name('U0645QRJ31T'))
