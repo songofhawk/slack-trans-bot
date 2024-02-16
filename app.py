@@ -18,6 +18,7 @@ app = Flask(__name__)
 SLACK_BOT_TOKEN = os.environ.get('SLACK_TRANS_BOT_TOKEN')
 SLACK_DEBUG_TOKEN = os.environ.get('SLACK_DEBUG_TOKEN')
 TRANSLATE_API_KEY = os.environ.get('OPENAI_TOKEN')
+SLACK_APP_ID = 'A06JKLQNMK8'
 ASCII_CHARS = set(string.printable)
 
 
@@ -79,9 +80,9 @@ def translate_to_english(origin_text: str) -> str | None:
 
 
 @lru_cache
-def get_user_name(user_id: str) -> str:
+def get_user_name(user_id: str, token: str) -> str:
     url = 'https://slack.com/api/users.profile.get'
-    headers = {'Authorization': f'Bearer {SLACK_BOT_TOKEN}'}
+    headers = {'Authorization': f'Bearer {token}'}
     params = {
         'user': user_id,
     }
@@ -133,7 +134,10 @@ def slack_events():
         else:
             message_cache.add(message_id)
 
-        user_name = get_user_name(json_data['event']['user'])
+        user_name = get_user_name(
+            json_data['event']['user'],
+            SLACK_BOT_TOKEN if json_data['api_app_id'] == SLACK_APP_ID else SLACK_DEBUG_TOKEN,
+        )
 
         text = json_data['event']['text']
         translated_text = translate_to_english(text)
@@ -147,7 +151,7 @@ def slack_events():
             return 'Translation failed', 200
 
         # 发送翻译后的文本到 Slack
-        if json_data['api_app_id'] == 'A06JKLQNMK8':
+        if json_data['api_app_id'] == SLACK_APP_ID:
             # 来自正式 channel 的消息，才会往正式 channel 转发
             if app.debug:
                 logger.warning(f'准备发送到 正式 Slack, token: {SLACK_BOT_TOKEN}, channel: {json_data["event"]["channel"]}')
