@@ -169,12 +169,12 @@ def slack_events():
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5002)
     if app.debug:
         logger.warning(f'SLACK_BOT_TOKEN: {SLACK_BOT_TOKEN}')
         logger.warning(f'SLACK_DEBUG_TOKEN: {SLACK_DEBUG_TOKEN}')
         logger.warning(f'OPENAI_TOKEN: {TRANSLATE_API_KEY}')
 
+    app.run(debug=True, port=5002)
     # app.debug = True
     # logger.warning(get_user_name('U0645QRJ31T'))
     # logger.warning(get_user_name('U0645QRJ31T'))
