@@ -147,11 +147,15 @@ def slack_events():
             return 'Translation failed', 200
 
         # 发送翻译后的文本到 Slack
+        if app.debug:
+            logger.warning(f'准备发送到 正式 Slack')
         send_message_to_slack(
             user_name + ' said: ' + translated_text,
             json_data['event']['channel'],
             token=SLACK_BOT_TOKEN
         )
+        if app.debug:
+            logger.warning(f'准备发送到 调试 Slack')
         send_message_to_slack(
             f"In【{json_data['event']['channel']}】，{user_name} said: {translated_text}",
             'slack-bot',
