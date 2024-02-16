@@ -127,6 +127,8 @@ def slack_events():
     if json_data['event']['type'] == 'message' and 'subtype' not in json_data['event']:
         message_id = json_data['event']['client_msg_id']
         if message_id in message_cache:
+            if app.debug:
+                logger.warning(f'消息已处理过，message_id：{message_id}')
             return 'Has processed', 200
         else:
             message_cache.add(message_id)
