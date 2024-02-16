@@ -20,6 +20,11 @@ SLACK_DEBUG_TOKEN = os.environ.get('SLACK_DEBUG_TOKEN')
 TRANSLATE_API_KEY = os.environ.get('OPENAI_TOKEN')
 ASCII_CHARS = set(string.printable)
 
+if app.debug:
+    logger.warning(f'SLACK_BOT_TOKEN: {SLACK_BOT_TOKEN}')
+    logger.warning(f'SLACK_DEBUG_TOKEN: {SLACK_DEBUG_TOKEN}')
+    logger.warning(f'OPENAI_TOKEN: {TRANSLATE_API_KEY}')
+
 
 class MessageCache:
     MAX_MESSAGE_COUNT = 100
