@@ -115,15 +115,16 @@ def slack_events():
         log('收到授权验证消息，确认')
         return jsonify({'challenge': json_data['challenge']})
 
-    if 'bot_id' in json_data['event'] and json_data['event']['bot_id']:
+    event_data = json_data['event']
+    if 'bot_id' in event_data and event_data['bot_id']:
         log('收到机器人消息，不处理')
         return 'Not process', 200
 
-    if json_data['event']['type'] != 'message' or 'subtype' in json_data['event']:
+    if event_data['type'] != 'message' or 'subtype' in event_data:
         log('不是消息事件，不处理')
         return 'Not message,', 200
         
-    message_id = json_data['event']['client_msg_id']
+    message_id = event_data['client_msg_id']
     if message_id in message_cache:
         log(f'消息已处理过，message_id：{message_id}')
         return 'Has processed', 200
@@ -131,11 +132,11 @@ def slack_events():
         message_cache.add(message_id)
 
     user_name = get_user_name(
-        json_data['event']['user'],
+        event_data['user'],
         SLACK_BOT_TOKEN if json_data['api_app_id'] == SLACK_APP_ID else SLACK_DEBUG_TOKEN,
     )
 
-    text = json_data['event']['text']
+    text = event_data['text']
     translated_text = translate_to_english(text)
     if translated_text is None:
         log('文本是英文，无需翻译')
@@ -150,13 +151,13 @@ def slack_events():
         log(f'准备发送到 正式 Slack, token: {SLACK_BOT_TOKEN}, channel: {json_data["event"]["channel"]}')
         send_message_to_slack(
             user_name + ' said: ' + translated_text,
-            json_data['event']['channel'],
+            event_data['channel'],
             token=SLACK_BOT_TOKEN
         )
 
     log(f'准备发送到 调试 Slack, token: {SLACK_DEBUG_TOKEN}, channel: slack-bot')
     send_message_to_slack(
-        f"In【{json_data['event']['channel']}】，{user_name} said: {translated_text}",
+        f"In【{event_data['channel']}】，{user_name} said: {translated_text}",
         'slack-bot',
         token=SLACK_DEBUG_TOKEN
     )
