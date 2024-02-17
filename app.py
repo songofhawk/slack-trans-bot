@@ -120,7 +120,7 @@ def slack_events():
         log('收到机器人消息，不处理')
         return 'Not process', 200
 
-    if event_data['type'] != 'message' or 'subtype' in event_data:
+    if event_data['type'] != 'message':
         log('不是消息事件，不处理')
         return 'Not message,', 200
         
