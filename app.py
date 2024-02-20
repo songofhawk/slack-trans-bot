@@ -15,9 +15,10 @@ logger.addHandler(logging.StreamHandler(stream=sys.stdout))
 
 app = Flask(__name__)
 
-SLACK_BOT_TOKEN = os.environ.get('SLACK_TRANS_BOT_TOKEN')
+SLACK_BOT_TOKEN = os.environ.get('SLACK_BOT_TOKEN')
 SLACK_DEBUG_TOKEN = os.environ.get('SLACK_DEBUG_TOKEN')
-TRANSLATE_API_KEY = os.environ.get('OPENAI_TOKEN')
+OPENAI_TOKEN = os.environ.get('OPENAI_TOKEN')
+
 SLACK_APP_ID = 'A06JKLQNMK8'
 ASCII_CHARS = set(string.printable)
 
@@ -62,7 +63,7 @@ def translate_to_english(origin_text: str) -> str | None:
     try:
         client = OpenAI(
             # This is the default and can be omitted
-            api_key=TRANSLATE_API_KEY,
+            api_key=OPENAI_TOKEN,
         )
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",  # 使用 GPT-3.5 的最新模型
@@ -173,7 +174,7 @@ def log(msg):
 if __name__ == '__main__':
     log(f'SLACK_BOT_TOKEN: {SLACK_BOT_TOKEN}')
     log(f'SLACK_DEBUG_TOKEN: {SLACK_DEBUG_TOKEN}')
-    log(f'OPENAI_TOKEN: {TRANSLATE_API_KEY}')
+    log(f'OPENAI_TOKEN: {OPENAI_TOKEN}')
 
     app.run(debug=True, port=5002)
     # app.debug = True
