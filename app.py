@@ -168,7 +168,7 @@ def slack_events():
 
 def log(msg):
     if app.debug:
-        app.logger.warning(msg)
+        logger.warning(msg)
 
 
 if __name__ == '__main__':
