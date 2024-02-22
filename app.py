@@ -10,7 +10,6 @@ from openai import OpenAI
 from functools import lru_cache
 import logging
 
-from debug import DebugCollector
 
 logger = logging.getLogger()
 logger.addHandler(logging.StreamHandler(stream=sys.stdout))
