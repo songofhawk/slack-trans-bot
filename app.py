@@ -10,7 +10,6 @@ from openai import OpenAI
 from functools import lru_cache
 import logging
 
-
 logger = logging.getLogger()
 logger.addHandler(logging.StreamHandler(stream=sys.stdout))
 
@@ -49,9 +48,9 @@ def is_english(text):
     # 简单的检查方法：如果大部分字符都是 ASCII，就假定文本是英文
     non_ascii_chars_in_text = [char for char in text if char not in ASCII_CHARS]
     log(f'非 ASCII 字符数量：{len(non_ascii_chars_in_text)}\n'
-                       f'总数量：{len(text)}\n '
-                       f'比例：{len(non_ascii_chars_in_text) / len(text)}\n'
-                       f'文本：{text}')
+        f'总数量：{len(text)}\n '
+        f'比例：{len(non_ascii_chars_in_text) / len(text)}\n'
+        f'文本：{text}')
     return len(non_ascii_chars_in_text) / len(text) < 0.1  # 可以调整阈值
 
 
@@ -97,7 +96,7 @@ def get_user_name(user_id: str, token: str) -> str:
         return user_id
 
 
-def send_message_to_slack(message, channel: str, thread: str, token: str):
+def send_message_to_slack(message, token: str, channel: str, thread: str | None = None):
     url = 'https://slack.com/api/chat.postMessage'
     headers = {'Authorization': f'Bearer {token}'}
     data = {
@@ -127,7 +126,7 @@ def slack_events():
     if event_data['type'] != 'message':
         log('不是消息事件，不处理')
         return 'Not message,', 200
-        
+
     if "client_msg_id" in event_data:
         message_id = event_data['client_msg_id']
         if message_id in message_cache:
@@ -156,22 +155,16 @@ def slack_events():
     if json_data['api_app_id'] == SLACK_APP_ID:
         # 来自正式 channel 的消息，才会往正式 channel 转发
         log(f'准备发送到 正式 Slack, token: {SLACK_BOT_TOKEN}, channel: {json_data["event"]["channel"]}')
-        send_message_to_slack(
-            user_name + ' said: ' + translated_text,
-            event_data['channel'],
-            thread=event_data['thread_ts'] if 'thread_ts' in event_data else None,
-            token=SLACK_BOT_TOKEN
-        )
+        send_message_to_slack(user_name + ' said: ' + translated_text, token=SLACK_BOT_TOKEN,
+                              channel=event_data['channel'],
+                              thread=event_data['thread_ts'] if 'thread_ts' in event_data else None)
     else:
         log(f'app_id: {json_data["api_app_id"]}, 不是正式 channel，不发送到正式 channel')
 
     log(f'准备发送到 调试 Slack, token: {SLACK_DEBUG_TOKEN}, channel: slack-bot')
     send_message_to_slack(
         f"In【{event_data['channel']}{'-' + event_data['thread_ts'] if 'thread_ts' in event_data else ''}】，"
-        f"{user_name} said: {translated_text}",
-        'slack-bot',
-        token=SLACK_DEBUG_TOKEN
-    )
+        f"{user_name} said: {translated_text}", token=SLACK_DEBUG_TOKEN, channel='slack-bot')
 
     return '', 200
 
