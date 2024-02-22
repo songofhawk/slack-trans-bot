@@ -135,8 +135,7 @@ def slack_events():
         else:
             message_cache.add(message_id)
     else:
-        log('消息没有 client_msg_id，不处理')
-        return 'Not process', 200
+        log('消息没有 client_msg_id，无法去重')
 
     user_name = get_user_name(
         event_data['user'],
