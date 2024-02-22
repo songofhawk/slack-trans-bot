@@ -10,6 +10,8 @@ from openai import OpenAI
 from functools import lru_cache
 import logging
 
+from debug import DebugCollector
+
 logger = logging.getLogger()
 logger.addHandler(logging.StreamHandler(stream=sys.stdout))
 
@@ -159,6 +161,8 @@ def slack_events():
             event_data['channel'],
             token=SLACK_BOT_TOKEN
         )
+    else:
+        log(f'app_id: {json_data["api_app_id"]}, 不是正式 channel，不发送到正式 channel')
 
     log(f'准备发送到 调试 Slack, token: {SLACK_DEBUG_TOKEN}, channel: slack-bot')
     send_message_to_slack(
@@ -171,8 +175,7 @@ def slack_events():
 
 
 def log(msg):
-    if app.debug:
-        logger.warning(msg)
+    logger.warning(msg)
 
 
 if __name__ == '__main__':
