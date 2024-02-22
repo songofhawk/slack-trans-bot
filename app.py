@@ -125,12 +125,16 @@ def slack_events():
         log('不是消息事件，不处理')
         return 'Not message,', 200
         
-    message_id = event_data['client_msg_id']
-    if message_id in message_cache:
-        log(f'消息已处理过，message_id：{message_id}')
-        return 'Has processed', 200
+    if "client_msg_id" in event_data:
+        message_id = event_data['client_msg_id']
+        if message_id in message_cache:
+            log(f'消息已处理过，message_id：{message_id}')
+            return 'Has processed', 200
+        else:
+            message_cache.add(message_id)
     else:
-        message_cache.add(message_id)
+        log('消息没有 client_msg_id，不处理')
+        return 'Not process', 200
 
     user_name = get_user_name(
         event_data['user'],
