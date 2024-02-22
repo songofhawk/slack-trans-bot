@@ -97,13 +97,15 @@ def get_user_name(user_id: str, token: str) -> str:
         return user_id
 
 
-def send_message_to_slack(message, channel: str, token: str):
+def send_message_to_slack(message, channel: str, thread: str, token: str):
     url = 'https://slack.com/api/chat.postMessage'
     headers = {'Authorization': f'Bearer {token}'}
     data = {
         'channel': channel,
         'text': message
     }
+    if thread:
+        data['thread_ts'] = thread
     response = requests.post(url, headers=headers, data=data)
     log('发送消息到 slack：\n' + response.text)
 
@@ -157,6 +159,7 @@ def slack_events():
         send_message_to_slack(
             user_name + ' said: ' + translated_text,
             event_data['channel'],
+            thread=event_data['thread_ts'] if 'thread_ts' in event_data else None,
             token=SLACK_BOT_TOKEN
         )
     else:
@@ -164,7 +167,8 @@ def slack_events():
 
     log(f'准备发送到 调试 Slack, token: {SLACK_DEBUG_TOKEN}, channel: slack-bot')
     send_message_to_slack(
-        f"In【{event_data['channel']}】，{user_name} said: {translated_text}",
+        f"In【{event_data['channel']}{'-' + event_data['thread_ts'] if 'thread_ts' in event_data else ''}】，"
+        f"{user_name} said: {translated_text}",
         'slack-bot',
         token=SLACK_DEBUG_TOKEN
     )
