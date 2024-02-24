@@ -46,12 +46,13 @@ message_cache = MessageCache()
 
 def is_english(text):
     # 简单的检查方法：如果大部分字符都是 ASCII，就假定文本是英文
+
     non_ascii_chars_in_text = [char for char in text if char not in ASCII_CHARS]
     log(f'非 ASCII 字符数量：{len(non_ascii_chars_in_text)}\n'
         f'总数量：{len(text)}\n '
         f'比例：{len(non_ascii_chars_in_text) / len(text)}\n'
         f'文本：{text}')
-    return len(non_ascii_chars_in_text) / len(text) < 0.1  # 可以调整阈值
+    return len(non_ascii_chars_in_text) / len(text) < 0.01  # 可以调整阈值
 
 
 def translate_to_english(origin_text: str) -> str | None:
