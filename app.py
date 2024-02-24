@@ -68,7 +68,14 @@ def translate_to_english(origin_text: str) -> str | None:
         )
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",  # 使用 GPT-3.5 的最新模型
-            messages=[{"role": "user", "content": f"Translate the following text to English:\n\n{origin_text}\n\n"}],
+            messages=[{
+                "role": "user",
+                "content":
+                    f"Translate the text quoted by ``` into English, "
+                    f"be careful that some words between two colons are emoji in slack, "
+                    f"keep them untranslated. "
+                    f"\n```\n{origin_text}\n```\n"
+            }],
             # 设置翻译提示
             max_tokens=2000,  # 根据需要调整最大令牌数
             temperature=0,
